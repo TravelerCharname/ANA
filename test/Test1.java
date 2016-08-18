@@ -105,7 +105,7 @@ public class Test1 {
 //            System.out.println("this is a " + plateInfo.getPlateType() + " plate");
 //            ANAPlate.runOnePlate(plateInfo,enableWatershed,only488);
         OperationQueue queue = OperationQueue.getQueue();queue.run();
-queue.enqueue(plateImageFolderName, pillarPlateBarcode);
+queue.enqueue(plateImageFolderName, pillarPlateBarcode,null);
         
 //        
 //loopPredict(); 
@@ -127,7 +127,7 @@ queue.enqueue(plateImageFolderName, pillarPlateBarcode);
             
             plateImageFolderName = folder.getName();
             pillarPlateBarcode = folder.getName().split("_")[0];
-            queue.enqueue(plateImageFolderName, pillarPlateBarcode); 
+            queue.enqueue(plateImageFolderName, pillarPlateBarcode,null); 
 //            if(PlateConstants.DEBUG_MODE)System.out.println("enqueue "+plateImageFolderName);
         }
 
@@ -179,7 +179,7 @@ new Thread(new Runnable() {
                         ANAPillarPlateInfo plateInfo;
                         plateImageFolderName = folder.getName();
                         pillarPlateBarcode = folder.getName().split("_")[0];
-                        plateInfo = TSPANAPlateInterface.getANAPlateSampleInfo(plateImageFolderName, pillarPlateBarcode);
+                        plateInfo = TSPANAPlateInterface.getANAPlateSampleInfo(plateImageFolderName, pillarPlateBarcode,null);
                         ANAPlate.runOnePlate(plateInfo,enableWatershed,only488);
                     } catch (SQLException ex) {
                         Logger.getLogger(Test1.class.getName()).log(Level.SEVERE, null, ex);

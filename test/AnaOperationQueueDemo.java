@@ -43,7 +43,7 @@ for (File folder : new File("J:\\ANA").listFiles()) {
         new Thread(OperationQueue.getQueue()).start();}
     plateImageFolderName = folder.getName();
     pillarPlateBarcode = folder.getName().split("_")[0];
-    OperationQueue.getQueue().enqueue(plateImageFolderName, pillarPlateBarcode); 
+    OperationQueue.getQueue().enqueue(plateImageFolderName, pillarPlateBarcode,null); 
 //            if(PlateConstants.DEBUG_MODE)System.out.println("enqueue "+plateImageFolderName);
 }
     }
@@ -59,7 +59,7 @@ for (File folder : new File("J:\\ANA").listFiles()) {
         String pillarPlateBarcode;
         plateImageFolderName = "ANAC80020310000545_20160714100233";
         pillarPlateBarcode = plateImageFolderName.split("_")[0];
-        queue.enqueue(plateImageFolderName, pillarPlateBarcode);
+        queue.enqueue(plateImageFolderName, pillarPlateBarcode,null);
     }
     
     
