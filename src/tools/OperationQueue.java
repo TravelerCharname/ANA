@@ -11,6 +11,7 @@ import exceptions.WrongANAPlateException;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
@@ -31,7 +32,7 @@ public class OperationQueue implements Runnable {
 
     public static boolean enableWatershed = constants.PlateConstants.ENABLE_WATERSHED;
     public static boolean only488 = constants.PlateConstants.ONLY_488;
-    private final LinkedList<String[]> PlateFolderName_PlateBarcode;
+    private final LinkedList<PlateParameters> PlateFolderName_PlateBarcode;//String[]
     private static final OperationQueue instance;
     public static final int PLATE_PREV_SIZE = 3;
 
@@ -46,6 +47,10 @@ public class OperationQueue implements Runnable {
     public static OperationQueue getQueue() {
         return instance;
     }
+    
+//    public static setSkippedPillar(List<String> ){
+//        
+//    }
 
     @Override
     public void run() {
@@ -80,19 +85,19 @@ public class OperationQueue implements Runnable {
     }
 
     public synchronized void dequeue() {
-        String[] folderName_plateId;
+        PlateParameters platePars;
         if (PlateFolderName_PlateBarcode != null && !PlateFolderName_PlateBarcode.isEmpty()) {
-            folderName_plateId = PlateFolderName_PlateBarcode.remove();
+            platePars = PlateFolderName_PlateBarcode.remove();
             try {
-                ANAPillarPlateInfo plateInfo = TSPANAPlateInterface.getANAPlateSampleInfo(folderName_plateId[0], folderName_plateId[1]);
+                ANAPillarPlateInfo plateInfo = TSPANAPlateInterface.getANAPlateSampleInfo(platePars.plateFolderName, platePars.plateBarcode,platePars.toSkip);
                 ANAPlate.runOnePlate(plateInfo, enableWatershed, only488);
 
                 if (!PlateConstants.DEBUG_MODE) {
                     System.out.println(Thread.currentThread() + " processed " + plateInfo.getPillarPlateID());
-                    String str="";String[] name;int len=PlateFolderName_PlateBarcode.size()<PLATE_PREV_SIZE?PlateFolderName_PlateBarcode.size():PLATE_PREV_SIZE;
+                    String str="";String name;int len=PlateFolderName_PlateBarcode.size()<PLATE_PREV_SIZE?PlateFolderName_PlateBarcode.size():PLATE_PREV_SIZE;
                     for(int i=0;i<len;i++){
-                        name = PlateFolderName_PlateBarcode.get(i);
-                        if(name!=null)str+=name[1]+";";
+                        name = PlateFolderName_PlateBarcode.get(i).plateBarcode;
+                        if(name!=null)str+=name+";";
                     }
                     
                     System.out.println("remaining plates (first "+PLATE_PREV_SIZE+ ") :"+str);
@@ -104,19 +109,19 @@ public class OperationQueue implements Runnable {
         }
     }
 
-    public void enqueue(String plateImageFolderName, String pillarPlateBarcode) {
+    public void enqueue(String plateImageFolderName, String pillarPlateBarcode, List<String> toSkip) {
         new Thread(new Runnable() {
             @Override
             public void run() {
                 synchronized (PlateFolderName_PlateBarcode) {
-                    PlateFolderName_PlateBarcode.add(new String[]{plateImageFolderName, pillarPlateBarcode});
+                    PlateFolderName_PlateBarcode.add(new PlateParameters(plateImageFolderName,pillarPlateBarcode,toSkip));
                     System.out.println("");
                     System.out.println("enque " + plateImageFolderName);
 //                    System.out.println(PlateFolderName_PlateBarcode.size() + " remaining");
-                    String str="";String[] name;int len=PlateFolderName_PlateBarcode.size()<PLATE_PREV_SIZE?PlateFolderName_PlateBarcode.size():PLATE_PREV_SIZE;
+                    String str="";String name;int len=PlateFolderName_PlateBarcode.size()<PLATE_PREV_SIZE?PlateFolderName_PlateBarcode.size():PLATE_PREV_SIZE;
                     for(int i=0;i<len;i++){
-                        name = PlateFolderName_PlateBarcode.get(i);
-                        if(name!=null)str+=name[1]+";";
+                        name = PlateFolderName_PlateBarcode.get(i).plateBarcode;
+                        if(name!=null)str+=name+";";
                     }
                     System.out.println("remaining plates (first "+PLATE_PREV_SIZE+ ") :"+str);
                     PlateFolderName_PlateBarcode.notify();
@@ -126,4 +131,16 @@ public class OperationQueue implements Runnable {
 
     }
 
+    class PlateParameters {
+    String plateFolderName;
+    String plateBarcode;
+    List<String> toSkip;
+
+        public PlateParameters(String plateFolderName, String plateBarcode, List<String> toSkip) {
+            this.plateFolderName = plateFolderName;
+            this.plateBarcode = plateBarcode;
+            this.toSkip = toSkip;
+        }
+    
+}
 }
